@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Статус партнёров МФО - 27.03.2026</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.5; }
+.header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 32px 24px; text-align: center; }
+.header h1 { font-size: 24px; margin-bottom: 4px; }
+.header .date { opacity: 0.8; font-size: 14px; }
+.container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+/* Summary cards */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.summary-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.summary-card .num { font-size: 28px; font-weight: 700; }
+.summary-card .label { font-size: 12px; color: #6b7280; margin-top: 4px; }
+.num.green { color: #15803d; }
+.num.yellow { color: #92400e; }
+.num.red { color: #dc2626; }
+.num.blue { color: #1e40af; }
+.num.gray { color: #6b7280; }
+
+/* Partner cards */
+.card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.card-header h2 { font-size: 18px; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-type { background: #e0e7ff; color: #3730a3; }
+.badge-date { background: #fef3c7; color: #92400e; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* Status badges */
+.st-done { background: #dcfce7; color: #15803d; }
+.st-readyfortesting { background: #fef3c7; color: #92400e; }
+.st-testing, .st-inprogress { background: #e0e7ff; color: #3730a3; }
+.st-readyfordeploy { background: #dbeafe; color: #1e40af; }
+.st-codereview { background: #fef9c3; color: #854d0e; }
+.st-todo { background: #fee2e2; color: #991b1b; }
+.st-backlog { background: #f3f4f6; color: #6b7280; }
+.st-unknown { background: #f3f4f6; color: #374151; font-style: italic; }
+
+/* Contract badges */
+.contract-signed { background: #dcfce7; color: #15803d; }
+.contract-pending { background: #fef3c7; color: #92400e; }
+.contract-none { background: #fee2e2; color: #991b1b; }
+.contract-unknown { background: #f3f4f6; color: #6b7280; }
+
+/* Task table */
+.tasks-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+.tasks-table th { text-align: left; padding: 6px 8px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+.tasks-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; }
+.tasks-table a { color: #2563eb; text-decoration: none; }
+.tasks-table a:hover { text-decoration: underline; }
+
+/* Domain status */
+.domain-block { margin: 8px 0; padding: 10px 12px; background: #f9fafb; border-radius: 8px; font-size: 13px; }
+.domain-block .url { font-family: monospace; color: #374151; }
+.http-ok { color: #15803d; font-weight: 600; }
+.http-fail { color: #dc2626; font-weight: 600; }
+.http-warn { color: #92400e; font-weight: 600; }
+
+/* Progress bar */
+.progress-wrap { margin: 10px 0; }
+.progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.progress-label { font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+/* Blocker */
+.blocker { margin-top: 8px; padding: 8px 12px; background: #fef2f2; border-left: 3px solid #dc2626; border-radius: 0 8px 8px 0; font-size: 13px; color: #991b1b; }
+.next-step { margin-top: 8px; padding: 8px 12px; background: #eff6ff; border-left: 3px solid #2563eb; border-radius: 0 8px 8px 0; font-size: 13px; color: #1e40af; }
+
+/* Messages section */
+.msg-section { margin-top: 32px; }
+.msg-section h2 { font-size: 20px; margin-bottom: 4px; }
+.msg-note { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+.msg-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.msg-card h3 { font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.msg-text { background: #f9fafb; padding: 12px; border-radius: 8px; font-size: 14px; white-space: pre-line; cursor: pointer; position: relative; }
+.msg-text:hover { background: #f0f2f5; }
+.msg-text::after { content: "Нажмите чтобы скопировать"; position: absolute; top: -20px; right: 8px; font-size: 10px; color: #9ca3af; opacity: 0; transition: opacity 0.2s; }
+.msg-text:hover::after { opacity: 1; }
+.copied-toast { position: fixed; bottom: 20px; right: 20px; background: #15803d; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; display: none; z-index: 100; }
+
+/* Section */
+.section-title { font-size: 20px; font-weight: 700; margin: 24px 0 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Статус заведения партнёров МФО</h1>
+  <div class="date">27 марта 2026</div>
+</div>
+
+<div class="container">
+
+<!-- Summary -->
+<div class="summary">
+  <div class="summary-card"><div class="num blue">11</div><div class="label">В работе</div></div>
+  <div class="summary-card"><div class="num green">1</div><div class="label">Договор подписан</div></div>
+  <div class="summary-card"><div class="num yellow">7</div><div class="label">На подписании</div></div>
+  <div class="summary-card"><div class="num gray">3</div><div class="label">Нет договора</div></div>
+  <div class="summary-card"><div class="num green">4</div><div class="label">Домен на проде</div></div>
+  <div class="summary-card"><div class="num red">3</div><div class="label">Домен недоступен</div></div>
+</div>
+
+<!-- ============ PARTNER CARDS ============ -->
+
+<!-- 1. Штрафы ГИБДД -->
+<div class="card">
+  <div class="card-header">
+    <h2>Штрафы ГИБДД</h2>
+    <div class="meta">
+      <span class="badge badge-type">Виджет</span>
+      <span class="badge badge-date">План: 03.04.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2951" target="_blank">INS-2951</a></td><td>Завести API ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2953" target="_blank">INS-2953</a></td><td>Домен и настройка</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2952" target="_blank">INS-2952</a></td><td>Разработать лендинг</td><td><span class="badge st-readyfortesting">Готово к тестированию</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">ftr.insapp.ru</span> -
+    Прод: <span class="http-ok">200 ✅</span> |
+    Тест: <span class="http-ok">200 ✅</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:75%; background: linear-gradient(90deg, #22c55e, #86efac);"></div></div>
+    <div class="progress-label">75% - API ✅ Домен ✅ Лендинг на тесте | Договор на подписании</div>
+  </div>
+  <div class="next-step">Ждём утверждения карточек МФО от Алмаза (был в отпуске до 16.03) и подписания договора</div>
+</div>
+
+<!-- 2. СДЭК -->
+<div class="card">
+  <div class="card-header">
+    <h2>СДЭК</h2>
+    <div class="meta">
+      <span class="badge badge-type">Лендинг</span>
+      <span class="badge badge-date">План: 03.04.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2969" target="_blank">INS-2969</a></td><td>Завести API ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2967" target="_blank">INS-2967</a></td><td>Макеты (дизайн)</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2970" target="_blank">INS-2970</a></td><td>Домен и настройка</td><td><span class="badge st-readyfordeploy">Залить на Prod</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2968" target="_blank">INS-2968</a></td><td>Разработать лендинг</td><td><span class="badge st-readyfortesting">Готово к тестированию</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">sdek.insapp.ru</span> -
+    Прод: <span class="http-ok">200 ✅</span> |
+    Тест: <span class="http-fail">000 ❌</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:70%; background: linear-gradient(90deg, #22c55e, #86efac);"></div></div>
+    <div class="progress-label">70% - API ✅ Дизайн ✅ Домен готов к деплою | Лендинг на тесте | Договор на подписании</div>
+  </div>
+  <div class="blocker">Павел (СДЭК) был в отпуске. Реальный запуск сдвинется за апрель. Нужна ОС по срокам.</div>
+</div>
+
+<!-- 3. МТС-Банк -->
+<div class="card">
+  <div class="card-header">
+    <h2>МТС-Банк</h2>
+    <div class="meta">
+      <span class="badge badge-type">Виджет</span>
+      <span class="badge badge-date">План: 30.03.2026</span>
+      <span class="badge contract-signed">Договор: Подписан ✅</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2732" target="_blank">INS-2732</a></td><td>Лендинг партнера МТС-Банк (ЭПИК)</td><td><span class="badge st-done">Закрыто</span></td></tr>
+  </table>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:90%; background: linear-gradient(90deg, #22c55e, #4ade80);"></div></div>
+    <div class="progress-label">90% - ЭПИК закрыт | Договор подписан 18.03 | INS-3044 (бейджи) на тесте</div>
+  </div>
+  <div class="next-step">Запуск согласован на 30-31 марта. Открытый вопрос: строка "Рекомендуем выбирать не менее 3-х" - уточнить удаление.</div>
+</div>
+
+<!-- 4. НЭП -->
+<div class="card">
+  <div class="card-header">
+    <h2>НЭП</h2>
+    <div class="meta">
+      <span class="badge badge-type">Агентский</span>
+      <span class="badge badge-date">План: 30.03.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2973" target="_blank">INS-2973</a></td><td>Завести API ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2971" target="_blank">INS-2971</a></td><td>Макеты (дизайн)</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2974" target="_blank">INS-2974</a></td><td>Домен и настройка</td><td><span class="badge st-readyfortesting">Готово к тестированию</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2972" target="_blank">INS-2972</a></td><td>Разработать агентский виджет</td><td><span class="badge st-todo">Сделать</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">nep.insapp.ru</span> -
+    Прод: <span class="http-fail">000 ❌</span> |
+    Тест: <span class="http-warn">403 ⚠️</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:60%; background: linear-gradient(90deg, #facc15, #fde68a);"></div></div>
+    <div class="progress-label">60% - API ✅ Дизайн ✅ Домен на тесте | Виджет не начат | Договор на подписании</div>
+  </div>
+  <div class="next-step">Агентский виджет РАБОТАЕТ (протестирован 20.03). Договор согласован с правкой по НДС - отправить по ЭДО через Лену Гранит. Можно делать лендос.</div>
+</div>
+
+<!-- 5. Полис 812 -->
+<div class="card">
+  <div class="card-header">
+    <h2>Полис 812</h2>
+    <div class="meta">
+      <span class="badge badge-type">Виджет</span>
+      <span class="badge badge-date">План: 31.03.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-3017" target="_blank">INS-3017</a></td><td>Завести API ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-3020" target="_blank">INS-3020</a></td><td>Макеты (дизайн)</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-3018" target="_blank">INS-3018</a></td><td>Домен и настройка</td><td><span class="badge st-readyfortesting">Готово к тестированию</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-3019" target="_blank">INS-3019</a></td><td>Разработать лендинг</td><td><span class="badge st-readyfortesting">Готово к тестированию</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">pl.insapp.ru</span> -
+    Прод: <span class="http-fail">000 ❌</span> |
+    Тест: <span class="http-warn">403 ⚠️</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:70%; background: linear-gradient(90deg, #22c55e, #86efac);"></div></div>
+    <div class="progress-label">70% - API ✅ Дизайн ✅ Домен и лендинг на тесте | Договор на подписании</div>
+  </div>
+  <div class="next-step">На стороне партнёра идут подготовительные работы. Понимание по срокам - после середины марта.</div>
+</div>
+
+<!-- 6. Росстрах -->
+<div class="card">
+  <div class="card-header">
+    <h2>Росстрах</h2>
+    <div class="meta">
+      <span class="badge badge-type">Агентский</span>
+      <span class="badge badge-date">План: 02.04.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2965" target="_blank">INS-2965</a></td><td>Завести API ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2966" target="_blank">INS-2966</a></td><td>Домен и настройка</td><td><span class="badge st-todo">Сделать</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2964" target="_blank">INS-2964</a></td><td>Разработать агентский виджет</td><td><span class="badge st-backlog">Backlog</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">rsg.insapp.ru</span> -
+    Прод: <span class="http-fail">000 ❌</span> |
+    Тест: <span class="http-fail">000 ❌</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:38%; background: linear-gradient(90deg, #f59e0b, #fde68a);"></div></div>
+    <div class="progress-label">38% - API ✅ | Домен не создан | Виджет в Backlog | Договор на стопе</div>
+  </div>
+  <div class="blocker">Договор поставили на стоп - ждут новую форму. Лендос для агентов не готов.</div>
+</div>
+
+<!-- 7. Goodway -->
+<div class="card">
+  <div class="card-header">
+    <h2>Goodway</h2>
+    <div class="meta">
+      <span class="badge badge-type">Оффлайн</span>
+      <span class="badge badge-date">План: 06.04.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2807" target="_blank">INS-2807</a></td><td>Завести ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2781" target="_blank">INS-2781</a></td><td>Дизайн баннера А6</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2880" target="_blank">INS-2880</a></td><td>Домен и настройка</td><td><span class="badge st-testing">Тестирование</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2912" target="_blank">INS-2912</a></td><td>Разработать лендинг (Goodway и Таксимания)</td><td><span class="badge st-testing">Тестирование</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">gw.insapp.ru</span> -
+    Прод: <span class="http-ok">200 ✅</span> |
+    Тест: <span class="http-ok">200 ✅</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:70%; background: linear-gradient(90deg, #22c55e, #86efac);"></div></div>
+    <div class="progress-label">70% - API ✅ Дизайн ✅ Домен и лендинг тестируются | Договор на подписании</div>
+  </div>
+  <div class="next-step">Уточнить: какие ключи использовать</div>
+</div>
+
+<!-- 8. Таксимания -->
+<div class="card">
+  <div class="card-header">
+    <h2>Таксимания</h2>
+    <div class="meta">
+      <span class="badge badge-type">Оффлайн</span>
+      <span class="badge badge-date">План: 06.04.2026</span>
+      <span class="badge contract-pending">Договор: На подписании</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2808" target="_blank">INS-2808</a></td><td>Завести ключ</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2881" target="_blank">INS-2881</a></td><td>Домен и настройка</td><td><span class="badge st-testing">Тестирование</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2912" target="_blank">INS-2912</a></td><td>Разработать лендинг (Goodway и Таксимания)</td><td><span class="badge st-testing">Тестирование</span></td></tr>
+  </table>
+  <div class="domain-block">
+    <strong>Домен:</strong> <span class="url">tam.insapp.ru</span> -
+    Прод: <span class="http-ok">200 ✅</span> |
+    Тест: <span class="http-ok">200 ✅</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:63%; background: linear-gradient(90deg, #22c55e, #86efac);"></div></div>
+    <div class="progress-label">63% - API ✅ Домен и лендинг тестируются | Договор на подписании</div>
+  </div>
+</div>
+
+<!-- 9. Охвати бизнес -->
+<div class="card">
+  <div class="card-header">
+    <h2>Охвати бизнес</h2>
+    <div class="meta">
+      <span class="badge badge-type">Виджет</span>
+      <span class="badge badge-date">План: 10.04.2026</span>
+      <span class="badge contract-unknown">Договор: Неизвестно</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2962" target="_blank">INS-2962</a></td><td>удалить</td><td><span class="badge st-backlog">Backlog</span></td></tr>
+  </table>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:10%; background: linear-gradient(90deg, #ef4444, #fca5a5);"></div></div>
+    <div class="progress-label">10% - Ранняя стадия. Задача "удалить" в Backlog. Нужна задача на виджет.</div>
+  </div>
+  <div class="blocker">Нужна задача на виджет. Единственная задача в трекере - "удалить" (Backlog).</div>
+</div>
+
+<!-- 10. Левобережный -->
+<div class="card">
+  <div class="card-header">
+    <h2>Левобережный</h2>
+    <div class="meta">
+      <span class="badge badge-type">Лендинг</span>
+      <span class="badge contract-unknown">Договор: Неизвестно</span>
+    </div>
+  </div>
+  <div style="padding: 12px; background: #f9fafb; border-radius: 8px; color: #6b7280; font-size: 13px;">
+    Нет задач в трекере
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:5%; background: #e5e7eb;"></div></div>
+    <div class="progress-label">5% - Нет задач в трекере. Ждём ОС от партнёра.</div>
+  </div>
+  <div class="blocker">До 06.03 у них внутренняя встреча с рук-ом. Должны вернуться с ОС по дате старта.</div>
+</div>
+
+<!-- 11. Подели -->
+<div class="card">
+  <div class="card-header">
+    <h2>Подели</h2>
+    <div class="meta">
+      <span class="badge contract-unknown">Договор: Неизвестно</span>
+    </div>
+  </div>
+  <table class="tasks-table">
+    <tr><th>Задача</th><th>Название</th><th>Статус</th></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2784" target="_blank">INS-2784</a></td><td>ОСАГО: бейдж InstallmentsDisabled</td><td><span class="badge st-backlog">Backlog</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-2778" target="_blank">INS-2778</a></td><td>ОСАГО: проверить работу бейджа</td><td><span class="badge st-done">Закрыто</span></td></tr>
+    <tr><td><a href="https://tracker.yandex.ru/INS-966" target="_blank">INS-966</a></td><td>ОСАГО: кнопка</td><td><span class="badge st-done">Закрыто</span></td></tr>
+  </table>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width:15%; background: linear-gradient(90deg, #f59e0b, #fde68a);"></div></div>
+    <div class="progress-label">15% - Задачи связаны с ОСАГО, не с МФО-онбордингом. Ждём ОС от продакта.</div>
+  </div>
+  <div class="blocker">Ждём ОС от продакта Подели. Если до пт не придёт - пинговать Николая.</div>
+</div>
+
+<!-- ============ MESSAGES SECTION ============ -->
+<div class="msg-section">
+  <h2 class="section-title">Сообщения партнёрам</h2>
+  <p class="msg-note">Сообщения для ручной отправки - скопируйте и отправьте в мессенджер. Нажмите на текст для копирования.</p>
+
+  <!-- Штрафы ГИБДД -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Пинг</span> Штрафы ГИБДД</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Хотел уточнить статус по нашему проекту. Виджет с нашей стороны готов и доступен на ftr.insapp.ru.
+
+Подскажите, пожалуйста:
+1. Есть ли обратная связь от Алмаза по карточкам МФО?
+2. Как обстоят дела с подписанием договора?
+
+Планируемая дата запуска - 3 апреля, хотелось бы понимать, укладываемся ли.</div>
+  </div>
+
+  <!-- СДЭК -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Уточнение сроков</span> СДЭК</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+С нашей стороны всё готово: API-ключ заведён, дизайн лендинга утверждён, домен настроен (sdek.insapp.ru), лендинг готов к тестированию.
+
+Подскажите, Павел вернулся? Хотелось бы согласовать актуальные сроки запуска и получить обратную связь по лендингу.</div>
+  </div>
+
+  <!-- МТС-Банк -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Подтверждение запуска</span> МТС-Банк</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Подтверждаем готовность к запуску 30-31 марта. Договор подписан, с нашей стороны всё готово.
+
+Уточните, пожалуйста:
+1. Удаление строки "Рекомендуем выбирать не менее 3-х" - нужно ли убрать?
+2. Всё ли в порядке с тестированием на вашей стороне?</div>
+  </div>
+
+  <!-- НЭП -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Договор + лендос</span> НЭП</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Агентский виджет протестирован и работает. Договор согласован с правкой по НДС - готовы отправить по ЭДО.
+
+Также готовы приступить к разработке лендинга (по аналогии с Hippo). Подтвердите, пожалуйста, что можем двигаться дальше.</div>
+  </div>
+
+  <!-- Полис 812 -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Уточнение сроков</span> Полис 812</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+С нашей стороны: API-ключ заведён, дизайн утверждён, домен и лендинг на тестировании.
+
+Подскажите, как продвигаются подготовительные работы на вашей стороне? Есть ли понимание по срокам запуска? Плановая дата - 31 марта.</div>
+  </div>
+
+  <!-- Росстрах -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Статус договора</span> Росстрах</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+API-ключ с нашей стороны заведён. По договору - готовим новую форму, как обсуждали в чате.
+
+Подскажите, есть ли с вашей стороны обновления? Как только форма будет готова, сможем двигаться дальше с доменом и виджетом.</div>
+  </div>
+
+  <!-- Goodway -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Уточнение</span> Goodway</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Лендинг и домен (gw.insapp.ru) на тестировании, дизайн и API готовы.
+
+Подскажите, какие ключи использовать для финальной настройки? Планируемый запуск - 6 апреля.</div>
+  </div>
+
+  <!-- Таксимания - нет отдельного сообщения, связана с Goodway -->
+
+  <!-- Охвати бизнес -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Старт работ</span> Охвати бизнес</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Хотели уточнить по проекту виджета МФО. Для начала работ нам потребуется:
+1. Реквизиты для договора
+2. Согласование типа интеграции и дизайна
+
+Планируемая дата запуска - 10 апреля. Готовы начать, как только получим вводные.</div>
+  </div>
+
+  <!-- Левобережный -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Пинг</span> Левобережный</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Хотел уточнить - была ли внутренняя встреча по нашему проекту? Есть ли понимание по формату интеграции и ориентировочным срокам?
+
+Готовы подключиться, как только будет решение с вашей стороны.</div>
+  </div>
+
+  <!-- Подели -->
+  <div class="msg-card">
+    <h3><span class="badge badge-type">Пинг</span> Подели</h3>
+    <div class="msg-text" onclick="copyMsg(this)">Добрый день!
+
+Хотел уточнить - есть ли обратная связь от вашего продакта по проекту МФО? Готовы обсудить детали и двигаться дальше.</div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="copied-toast" id="toast">Скопировано!</div>
+
+<script>
+function copyMsg(el) {
+  navigator.clipboard.writeText(el.textContent.trim()).then(() => {
+    const toast = document.getElementById('toast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 1500);
+  });
+}
+</script>
+
+</body>
+</html>
